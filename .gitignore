@@ -4,3 +4,9 @@ __pycache__/
 *$py.class
 
 temp/
+
+img/.DS_Store
+scripts/.ipynb_checkpoints/
+src/.ipynb_checkpoints/
+
+
