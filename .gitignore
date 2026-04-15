@@ -5,8 +5,7 @@ __pycache__/
 
 temp/
 
-img/.DS_Store
-scripts/.ipynb_checkpoints/
-src/.ipynb_checkpoints/
+*/.DS_Store
+*/.ipynb_checkpoints/
 
 
