@@ -3,9 +3,11 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+*/.ipynb_checkpoints/
+
 temp/
 
+.DS_Store
 */.DS_Store
-*/.ipynb_checkpoints/
 
 
