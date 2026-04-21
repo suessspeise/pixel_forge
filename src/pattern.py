@@ -5,6 +5,7 @@ Each generator returns mode 'L', size (32, 32), values 0–255.
 
 import math
 import random
+from typing import Optional
 from PIL import Image, ImageOps
 
 __all__ = [ 'PlasmaGenerator',
@@ -19,11 +20,11 @@ __all__ = [ 'PlasmaGenerator',
             'DLAGenerator',
             'ChladniGenerator']
 
-def clamp(v: float, lo: float = 0.0, hi: float = 1.0) -> float:
+def _clamp(v: float, lo: float = 0.0, hi: float = 1.0) -> float:
     return max(lo, min(hi, v))
 
-def to_byte(v: float) -> int:
-    return int(clamp(v) * 255)
+def _to_byte(v: float) -> int:
+    return int(_clamp(v) * 255)
 
 class Generator:
     SIZE = 32
@@ -64,7 +65,7 @@ class PlasmaGenerator(Generator):
              + math.sin(y * f2)
              + math.sin((x + y) * f3)
              + math.sin(math.hypot(x - 16, y - 16) * 0.5))
-        return to_byte((v + 4) / 8)
+        return _to_byte((v + 4) / 8)
 
 class VoronoiGenerator(Generator):
     """
@@ -81,20 +82,32 @@ class VoronoiGenerator(Generator):
     def pixel(self, x, y):
         dists = sorted(math.hypot(x - px, y - py) for px, py in self.seeds)
         ridge = (dists[1] - dists[0]) / 8
-        return to_byte(clamp(ridge))
+        return _to_byte(_clamp(ridge))
 
 class WaveGenerator(Generator):
-    """Product of two orthogonal cosine waves."""
+    """Product of two orthogonal cosine waves with optional randomization."""
 
-    def __init__(self, freq_x: float = 0.5, freq_y: float = 0.4,
-                 phase_x: float = 0.0, phase_y: float = 0.0):
-        self.fx, self.fy = freq_x, freq_y
-        self.px, self.py = phase_x, phase_y
+    def __init__(self, 
+                 freq_x: float = 0.5, 
+                 freq_y: float = 0.4,
+                 phase_x: float = 0.0, 
+                 phase_y: float = 0.0, 
+                 seed: int | None = None):
+        if seed is not None: random.seed(seed)
+
+        self.px = phase_x if phase_x != 0.0 else random.uniform(0, 2 * math.pi)
+        self.py = phase_y if phase_y != 0.0 else random.uniform(0, 2 * math.pi)
+
+    
+        ratio = random.uniform(0.5, 2.0)
+        self.fx = random.uniform(0.2, 1.0)
+        self.fy = self.fx * ratio
 
     def pixel(self, x, y):
         u = math.cos(x * self.fx + self.px)
         v = math.cos(y * self.fy + self.py)
-        return to_byte((u * v + 1) / 2)
+        return _to_byte((u * v + 1) / 2)
+        
 
 class NoiseGenerator(Generator):
     """Two-octave value noise with cosine interpolation. No external deps."""
@@ -124,7 +137,7 @@ class NoiseGenerator(Generator):
                                     y / self.scale * freq)
             amp *= 0.5
             freq *= 2
-        return to_byte(v / 1.5)
+        return _to_byte(v / 1.5)
 
 class MazeGenerator(Generator):
     """
@@ -202,14 +215,14 @@ class LissajousGenerator(Generator):
         self._build()
         S = self.SIZE
         img = Image.new("L", (S, S))
-        img.putdata([to_byte(self._grid[y][x])
+        img.putdata([_to_byte(self._grid[y][x])
                      for y in range(S) for x in range(S)])
         return img
 
     def pixel(self, x, y):
         if self._grid is None:
             self._build()
-        return to_byte(self._grid[y][x])
+        return _to_byte(self._grid[y][x])
 
 
 class TruchetGenerator(Generator):
@@ -358,14 +371,14 @@ class ReactionDiffusionGenerator(Generator):
         self._build()
         S = self.SIZE
         img = Image.new("L", (S, S))
-        img.putdata([to_byte(self._grid[y][x])
+        img.putdata([_to_byte(self._grid[y][x])
                      for y in range(S) for x in range(S)])
         return  ImageOps.invert(img)
 
     def pixel(self, x, y):
         if self._grid is None:
             self._build()
-        return to_byte(self._grid[y][x])
+        return _to_byte(self._grid[y][x])
 
 
 class GameOfLifeGenerator(Generator):
