@@ -4,9 +4,9 @@ import cv2
 import numpy as np
 import sklearn.cluster
 
-__all__ = ['Deepfrier']
+__all__ = ['Deepfryer']
 
-class Deepfrier:
+class Deepfryer:
     """
     Stateless toolkit of image processing operations for *deepfrying* effects.
 
@@ -49,7 +49,7 @@ class Deepfrier:
         return Image.fromarray(quantized, mode="RGB")
 
     @staticmethod    
-    def tone_curving(img: Image.Image, gamma: float = 2.0, crush_factor: float = 0.2) -> Image.Image:
+    def tone_curving(img: Image.Image, gamma: float = 10.0, crush_factor: float = 0.2) -> Image.Image:
         """
         Apply a per-channel tone curve (gamma + midtone crush) to an 8-bit PIL image.
     
@@ -147,7 +147,7 @@ class Deepfrier:
         result = img.copy()
         for _ in range(layers - 1):
             layer = function(result)  # Or other effect
-            result = blend_overlay(result, layer)
+            result = Deepfryer.blend_overlay(result, layer)
         return result
 
     @staticmethod
@@ -173,7 +173,7 @@ class Deepfrier:
         current = img.convert("RGB")
         for _ in range(iterations):
             q = np.random.randint(q_min, q_max + 1)  # jitter quality
-            with BytesIO() as buf:
+            with io.BytesIO() as buf:
                 current.save(buf, "JPEG", quality=q, subsampling=2, optimize=False)
                 buf.seek(0)
                 current = Image.open(buf).copy()
@@ -203,7 +203,7 @@ class Deepfrier:
         return Image.fromarray(cur.astype(np.uint8), "RGB")
 
     @staticmethod
-    def add_noise(img: Image.Image, mean: float = 0.0, sigma: float = 25.0, amount: float = 0.4) -> Image.Image:
+    def add_noise(img: Image.Image, mean: float = 0.0, sigma: float = 100.0, amount: float = 0.4) -> Image.Image:
         """
         Add Gaussian noise by blending the image with random noise (image*(1-amount) + noise*amount).
         Preserves alpha for LA/RGBA; other modes convert to RGB.
@@ -239,7 +239,7 @@ class Deepfrier:
         x: int,
         y: int,
         radius: int,
-        zoom_factor: float = 1.5,
+        zoom_factor: float = 7,
         strength: float = 1.0,
         blend_mode: str = "smooth",
         feather_exponent: float = 2.0,
@@ -637,7 +637,6 @@ class Deepfrier:
         PIL.Image.Image
             A new "RGB" image with the wrapped channel shifts applied.
         """
-        print('what?')
         theta = np.radians(angle)
         ux =  np.cos(theta)
         uy = -np.sin(theta)
