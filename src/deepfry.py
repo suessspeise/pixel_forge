@@ -614,7 +614,7 @@ class Deepfrier:
 
     @staticmethod
     def add_chromatic_aberration(image: Image.Image, channel_weights: tuple[float, float, float] = (10,0,-10), angle: float = 0.0,) -> Image.Image:
-            """
+        """
         Apply a glitch-style chromatic aberration by shifting RGB channels with wrap-around edges.
     
         Each channel (R, G, B) is translated by an integer offset derived from its
@@ -637,14 +637,15 @@ class Deepfrier:
         PIL.Image.Image
             A new "RGB" image with the wrapped channel shifts applied.
         """
+        print('what?')
         theta = np.radians(angle)
         ux =  np.cos(theta)
         uy = -np.sin(theta)
-    
+        
         channels = np.array(image.convert("RGB"), dtype=np.uint8)  # (H, W, 3)
         H, W = channels.shape[:2]
         result = np.zeros_like(channels)
-    
+        
         for ch_idx, weight in enumerate(channel_weights):
             raw_dx = weight * ux
             raw_dy = weight * uy
@@ -653,5 +654,5 @@ class Deepfrier:
             plane = channels[..., ch_idx]  # (H, W)
             shifted = np.roll(np.roll(plane, dy, axis=0), dx, axis=1)
             result[..., ch_idx] = shifted
-    
+        
         return Image.fromarray(result, mode="RGB")
